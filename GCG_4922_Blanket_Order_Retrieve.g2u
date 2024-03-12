@@ -1,0 +1,34 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'BN, Jan 18, 2017
+'This project will be fired on Script 1 button of screen :  ORD193A (Order Entry > View > Orders and History > Order History) and retrieve the Blanket number.
+
+f.Intrinsic.Control.Try
+v.Local..BulkDeclareString(sError,sRet,sSQL,sOrder)
+F.odbc.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass,600)
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(33001)
+		Variable.Passed.000153.Set("Blanket Order")
+
+	F.Intrinsic.Control.Case(33002)
+		f.Intrinsic.String.LPad(Variable.Passed.000002,"0",7,v.Local.sOrder)
+		f.Intrinsic.String.Build("Select top 1 Blanket from V_Order_Blanket_Xref where Order_no = '{0}'",v.Local.sOrder,v.Local.sSQL)
+		f.ODBC.Connection!con.ExecuteAndReturn(v.Local.sSQL,v.Local.sRet)
+		f.Intrinsic.Control.If(v.Local.sret,<>,"")
+			f.Intrinsic.UI.Msgbox(v.Local.sRet,"Blanket Order Number")
+		f.Intrinsic.Control.Else
+			f.Intrinsic.UI.Msgbox("There is no Blanket Order for this Order.","No Blanket Order")
+		f.Intrinsic.Control.EndIf			
+		
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Catch
+	Function.Intrinsic.String.Concat("Subroutine Error",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End 
+F.Intrinsic.Control.EndTry
+
+Program.Sub.Main.End
